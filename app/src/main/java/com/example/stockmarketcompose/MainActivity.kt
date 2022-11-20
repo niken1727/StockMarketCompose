@@ -1,12 +1,17 @@
 package com.example.stockmarketcompose
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowCircleDown
+import androidx.compose.material.icons.filled.ArrowCircleUp
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
@@ -15,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -34,18 +40,99 @@ import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
-
+    val countryList = listOf("Nepal", "USA", "JAPAN", "CHINA")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            UseSideEffect()
-//            UseConstraintLayout()
-//            UseImageCard()
-//            UseState()
-//            UseTextField()
+            IconDropDown(
+                countryList,
+                "Select Country",
+                false,
+                Icons.Default.Flag,
+                true,
+                Icons.Default.Flag
+            ) {
+                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+            }
         }
     }
+}
+
+@Composable
+fun IconDropDown(
+    dropDownList: List<String>,
+    hint: String,
+    shouldShowIcon: Boolean,
+    imageVector: ImageVector? = null,
+    shouldShowDropDownIcon: Boolean,
+    dropDownImageVector: ImageVector? = null,
+    onValueSelected: (String) -> Unit
+) {
+    var selectedDropDownValue by remember { mutableStateOf("") }
+    var isCustomDropDownExpanded by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box {
+            OutlinedTextField(
+                value = selectedDropDownValue,
+                onValueChange = { },
+                placeholder = { Text(text = hint) },
+                enabled = false,
+                modifier = Modifier
+                    .padding(16.dp, 32.dp, 32.dp, 0.dp)
+                    .clickable {
+                        isCustomDropDownExpanded = true
+                    }
+                    .fillMaxWidth(0.8f),
+                textStyle = TextStyle(color = Color.Black),
+                trailingIcon =
+                {
+                    if (shouldShowIcon) {
+                        imageVector?.let { Icon(imageVector = it, contentDescription = "") }
+                    }
+                }
+            )
+
+            DropdownMenu(
+                expanded = isCustomDropDownExpanded,
+                onDismissRequest = { isCustomDropDownExpanded = false },
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+            ) {
+                dropDownList.forEachIndexed { index, selectedValue ->
+                    DropdownMenuItem(onClick = {
+                        selectedDropDownValue = selectedValue
+                        onValueSelected(selectedValue)
+                        isCustomDropDownExpanded = false
+                    }) {
+                        Modifier.fillMaxWidth()
+                        Text(selectedValue)
+                        if (shouldShowDropDownIcon) {
+                            Row(
+                                horizontalArrangement = Arrangement.End,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                dropDownImageVector?.let {
+                                    Icon(
+                                        imageVector = it,
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        }
+
+                    }
+                    if (index != dropDownList.lastIndex)
+                        Divider(Modifier.background(Color.Black))
+                }
+            }
+        }
+    }
+
 }
 
 @Composable
@@ -64,7 +151,7 @@ fun DerivedStateOfDemo() {
 @Composable
 fun ProduceStateDemo(countUpTo: Int): State<Int> {
     return produceState(initialValue = 0) {
-        while(value < countUpTo) {
+        while (value < countUpTo) {
             delay(1000L)
             value++
         }
@@ -84,7 +171,7 @@ fun DisposableEffectDemo() {
 
     DisposableEffect(key1 = lifeCycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if(event == Lifecycle.Event.ON_PAUSE) {
+            if (event == Lifecycle.Event.ON_PAUSE) {
                 println("On Pause Called")
             }
         }
@@ -98,7 +185,7 @@ fun DisposableEffectDemo() {
 @Composable
 fun RememberUpdatedStateDemo(
     onTimeout: () -> Unit
-){
+) {
     val updatedOnTimeout by rememberUpdatedState(newValue = onTimeout)
     LaunchedEffect(key1 = true) {
         delay(1000L)
@@ -155,13 +242,15 @@ fun UseConstraintLayout() {
         createHorizontalChain(greenBox, redBox, chainStyle = ChainStyle.Packed)
     }
     ConstraintLayout(constraints, modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier
-            .background(Color.Green)
-            .layoutId("greenbox")
+        Box(
+            modifier = Modifier
+                .background(Color.Green)
+                .layoutId("greenbox")
         )
-        Box(modifier = Modifier
-            .background(Color.Red)
-            .layoutId("redbox")
+        Box(
+            modifier = Modifier
+                .background(Color.Red)
+                .layoutId("redbox")
         )
     }
 }
@@ -172,7 +261,7 @@ fun UseTextField() {
     var textFieldState by remember {
         mutableStateOf("")
     }
-    val scope = rememberCoroutineScope ()
+    val scope = rememberCoroutineScope()
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         scaffoldState = scaffoldState
